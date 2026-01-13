@@ -1,16 +1,31 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { TermsModal } from "./TermsModal";
+import { PrivacyModal } from "./PrivacyModal";
 
 export function EmailSignup() {
   const [email, setEmail] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !agreed) {
+      if (!agreed) {
+        toast({
+          title: "Wymagana zgoda",
+          description: "Musisz zaakceptować regulamin i politykę prywatności.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     setIsLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -22,9 +37,13 @@ export function EmailSignup() {
     });
 
     setEmail("");
+    setAgreed(false);
   };
 
   return (
+    <>
+      <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />
+      <PrivacyModal open={privacyOpen} onOpenChange={setPrivacyOpen} />
     <section className="py-24 relative">
       {/* Background glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
@@ -67,6 +86,34 @@ export function EmailSignup() {
             </Button>
           </form>
 
+          {/* Checkbox for terms */}
+          <div className="flex items-start gap-3 max-w-md mx-auto mt-4">
+            <Checkbox
+              id="terms"
+              checked={agreed}
+              onCheckedChange={(checked) => setAgreed(checked === true)}
+              className="mt-0.5"
+            />
+            <label htmlFor="terms" className="text-sm text-muted-foreground text-left leading-relaxed">
+              Akceptuję{" "}
+              <button
+                type="button"
+                onClick={() => setTermsOpen(true)}
+                className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
+              >
+                regulamin
+              </button>{" "}
+              oraz{" "}
+              <button
+                type="button"
+                onClick={() => setPrivacyOpen(true)}
+                className="text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
+              >
+                politykę prywatności
+              </button>
+            </label>
+          </div>
+
           {/* Trust text */}
           <p className="text-sm text-muted-foreground mt-4">
             Bez spamu. Możesz wypisać się w każdej chwili.
@@ -74,5 +121,6 @@ export function EmailSignup() {
         </div>
       </div>
     </section>
+    </>
   );
 }
